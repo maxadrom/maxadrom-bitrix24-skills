@@ -1,7 +1,7 @@
 ---
 name: bitrix24-bi-reports
 description: |
-  Разработка отчётов и дашбордов в BI-конструкторе Битрикс24 (Trino + Apache Superset 6.0). Используй этот скилл, когда пользователь просит сделать отчёт, дашборд, чарт, таблицу или график в BI-конструкторе, BI Битрикса, Superset, Trino, SQL Lab. Покрывает: проектирование датасетов через SQL Lab, типовые SQL-паттерны для задач/CRM, форматирование длительности и дат, кликабельные ссылки, фильтры дашборда, раскраска ячеек, накопительные воронки, типичные грабли. Триггеры: «BI конструктор», «BI Битрикса», «Superset», «отчёт в Битриксе», «дашборд в B24», «SQL Lab», «Trino», «чарт по задачам», «отчёт по сделкам», «воронка продаж», «конверсия по этапам».
+  Разработка отчётов и дашбордов в BI-конструкторе Битрикс24 (Trino + Apache Superset 6.0). Используй этот скилл, когда пользователь просит сделать отчёт, дашборд, чарт, таблицу или график в BI-конструкторе, BI Битрикса, Superset, Trino, SQL Lab. Покрывает: проектирование датасетов через SQL Lab, типовые SQL-паттерны для задач/CRM/телефонии/лидов/смарт-процессов, форматирование длительности и дат, кликабельные ссылки, фильтры дашборда, раскраска ячеек, накопительные воронки, отчёты по дозвону, типичные грабли. Триггеры: «BI конструктор», «BI Битрикса», «Superset», «отчёт в Битриксе», «дашборд в B24», «SQL Lab», «Trino», «чарт по задачам», «отчёт по сделкам», «воронка продаж», «конверсия по этапам», «отчёт по звонкам», «телефония», «дозвон», «отчёт по лидам», «смарт-процесс», «счета».
 ---
 
 # Разработка отчётов в BI-конструкторе Битрикс24
@@ -35,14 +35,89 @@ description: |
 - `task.GROUP_ID = socialnetwork_group.ID` — для названия группы/проекта
 - `task.ID = task_uf.TASK_ID` — для пользовательских полей
 
-### CRM
+### CRM — основные сущности
 - `crm_deal` — сделки (текущее состояние)
-- `crm_deal_stage_history` — история смены стадий сделок (одна строка = одно нахождение в стадии)
-- `crm_stages` — справочник стадий (общий для лидов и сделок)
+- `crm_deal_uf` — пользовательские поля сделок
+- `crm_deal_product_row` — товарные позиции сделок
+- `crm_lead` — лиды (текущее состояние)
+- `crm_lead_uf` — пользовательские поля лидов
+- `crm_lead_product_row` — товарные позиции лидов
+- `crm_contact` — контакты
+- `crm_contact_uf` — пользовательские поля контактов
+- `crm_company` — компании
+- `crm_company_uf` — пользовательские поля компаний
+- `crm_quote` — коммерческие предложения
+- `crm_quote_uf` — пользовательские поля КП
+- `crm_quote_product_row` — товарные позиции КП
 
-**Связки:**
+### CRM — справочники и история
+- `crm_stages` — справочник стадий (общий для лидов, сделок, смарт-процессов)
+- `crm_deal_stage_history` — история смены стадий **сделок** (одна строка = одно нахождение в стадии)
+- `crm_lead_status_history` — история смены стадий **лидов**
+- `crm_entity_stage_history` — история смены стадий **смарт-процессов** (универсальная по всем типам, см. раздел «Смарт-процессы»)
+- `crm_entity_relation` — связи между сущностями CRM (разведать перед использованием)
+- `crm_activity` — дела (звонки, встречи, письма)
+- `crm_activity_relation` — связи дел с сущностями
+- `crm_last_communication` — последние коммуникации (разведать перед использованием)
+
+### CRM — товары и склад
+- `crm_product` — товары каталога
+- `crm_product_property` — свойства товаров
+- `crm_product_property_value` — значения свойств товаров
+- `catalog_store` — склады
+- `catalog_store_product` — остатки товаров по складам
+- `catalog_store_document` — складские документы
+- `catalog_store_document_item` — позиции складских документов
+
+### CRM — смарт-процессы
+- `crm_smart_proc` — справочник смарт-процессов портала (типы и их свойства)
+- `crm_dynamic_items_<typeId>` — элементы смарт-процесса конкретного типа (одна таблица = один тип)
+- `crm_dynamic_items_prod_<typeId>` — товарные позиции элементов смарт-процесса
+
+Подробнее — см. раздел «Смарт-процессы».
+
+### CRM — AI-аналитика звонков
+- `crm_ai_quality_assessment` — оценки качества звонков AI (разведать перед использованием)
+- `crm_copilot_call_assessment` — оценки звонков от CoPilot (разведать перед использованием)
+
+### Телефония
+- `telephony_call` — звонки (REST-аналог: `voximplant.statistic.get`)
+
+Подробнее — см. раздел «Телефония и звонки».
+
+### Заказы (интернет-магазин)
+- `sale_document_saleorder` — заказы
+- `sale_document_saleorder_item` — позиции заказов
+
+Разведать перед использованием.
+
+### Аналитика трафика
+- `tracking_source` — источники трафика
+- `tracking_source_expenses` — расходы по источникам
+
+Разведать перед использованием.
+
+### Бизнес-процессы
+- `bizproc_workflow_template` — шаблоны БП
+- `bizproc_workflow_state` — состояния запущенных БП
+- `bizproc_task` — задачи (заявки) бизнес-процессов
+
+Разведать перед использованием.
+
+### Пользователи и оргструктура
+- `user` — сотрудники портала
+- `org_structure` — подразделения
+- `org_structure_relation` — связи в оргструктуре
+
+Разведать перед использованием.
+
+**Связки (CRM):**
 - `crm_deal.id = crm_deal_stage_history.deal_id` — история по сделке
+- `crm_lead.id = crm_lead_status_history.lead_id` — история по лиду (поле уточнить разведкой)
 - `crm_stages.status_id = crm_deal.stage_id` + `crm_stages.entity_type_id = 2` + `crm_stages.category_id = crm_deal.category_id` — справочник к сделке (для `sort` и `semantics`)
+- `crm_stages.status_id = crm_lead.status_id` + `crm_stages.entity_type_id = 1` — справочник к лиду (у лидов нет `category_id`)
+- `crm_deal_product_row.OWNER_ID = crm_deal.id` — товары сделки (поле уточнить разведкой)
+- `crm_<entity>_uf.<ENTITY>_ID = crm_<entity>.id` — пользовательские поля (точное имя FK уточнить разведкой по `SELECT *`)
 
 ⚠️ Связку `crm_stages.id = crm_deal.stage_id` НЕ использовать — `crm_deal.stage_id` хранит **код** стадии (`NEW`, `WON`, `UC_200GJB`), а не числовой ID. Связывать через `status_id`.
 
@@ -294,6 +369,346 @@ CAST(SUM(reached_won) AS DOUBLE) / NULLIF(SUM(reached_new), 0)
 
 ---
 
+## Телефония и звонки
+
+Датасет `telephony_call` соответствует REST-методу `voximplant.statistic.get`. Одна строка = один звонок.
+
+### Ключевые поля
+
+| Поле | Тип | Назначение |
+|---|---|---|
+| `call_id` | VARCHAR | Уникальный ключ звонка |
+| `phone_number` | VARCHAR | Номер абонента (клиента) |
+| `portal_number` | VARCHAR | Номер оператора (АТС) |
+| `portal_user_id` | BIGINT | ID оператора |
+| `portal_user` | VARCHAR | ФИО оператора |
+| `call_type` | VARCHAR (!) | `'1'` — исходящий, `'2'` — входящий. **Строка, не число!** |
+| `call_duration` | FLOAT | **Длительность разговора в секундах** — основное поле для аналитики дозвона |
+| `record_duration` | BIGINT | Длительность файла записи. ⚠️ Часто `NULL` или мусорные значения (1–4 сек) — НЕ использовать как длительность разговора |
+| `call_start_time` | TIMESTAMP | Время начала звонка |
+| `call_status_code_id` | VARCHAR | Код результата (`'200'` — успех, `'603-S'` — сброс и т.п.) |
+| `call_status_reason` | VARCHAR | Расшифровка кода |
+| `crm_entity_type` | VARCHAR | `LEAD` / `CONTACT` / `COMPANY` / `DEAL` — к чему привязан звонок |
+| `crm_entity_id` | BIGINT | ID объекта CRM |
+| `redial_attempt` | INTEGER | Попытки автодозвона в рамках **одного** звонка (не серии попыток менеджера) |
+
+⚠️ **Длительность разговора — это `call_duration`, НЕ `record_duration`.** Несмотря на название «Продолжительность разговора в секундах» в схеме, `record_duration` фактически содержит длительность файла записи и часто пустое/мусорное. Перед любым отчётом по успешности звонков сверять:
+
+```sql
+SELECT
+    SUM(CASE WHEN call_duration >= 60 THEN 1 ELSE 0 END)   AS call_ge_60,
+    SUM(CASE WHEN record_duration >= 60 THEN 1 ELSE 0 END) AS rec_ge_60,
+    MAX(call_duration) AS max_call,
+    MAX(record_duration) AS max_rec
+FROM bitrix24.telephony_call
+WHERE call_type = '1';
+```
+
+Если `max_call` десятки/сотни секунд, а `max_rec` — единицы или NULL → использовать `call_duration`.
+
+### Связки
+
+- `telephony_call.crm_entity_id = crm_lead.id` при `crm_entity_type = 'LEAD'`
+- `telephony_call.crm_entity_id = crm_deal.id` при `crm_entity_type = 'DEAL'`
+- `telephony_call.crm_entity_id = crm_contact.id` при `crm_entity_type = 'CONTACT'`
+- `telephony_call.crm_entity_id = crm_company.id` при `crm_entity_type = 'COMPANY'`
+
+### Разведка перед телефонным отчётом
+
+Обязательный мини-чек-лист на новом портале:
+
+```sql
+-- 1. Структура таблицы звонков
+SELECT * FROM bitrix24.telephony_call LIMIT 1;
+
+-- 2. Распределение типов звонков (какое значение у исходящего)
+SELECT call_type, COUNT(*) AS cnt
+FROM bitrix24.telephony_call
+WHERE call_start_time >= TIMESTAMP '2026-05-01 00:00:00'
+GROUP BY call_type
+ORDER BY cnt DESC;
+
+-- 3. Какое поле длительности живое
+SELECT
+    SUM(CASE WHEN call_duration >= 60 THEN 1 ELSE 0 END)   AS call_ge_60,
+    SUM(CASE WHEN record_duration >= 60 THEN 1 ELSE 0 END) AS rec_ge_60,
+    MAX(call_duration) AS max_call,
+    MAX(record_duration) AS max_rec
+FROM bitrix24.telephony_call
+WHERE call_type = '1'
+  AND call_start_time >= TIMESTAMP '2026-05-01 00:00:00';
+
+-- 4. К какой сущности привязаны звонки
+SELECT crm_entity_type, COUNT(*) AS cnt
+FROM bitrix24.telephony_call
+WHERE call_type = '1'
+  AND call_start_time >= TIMESTAMP '2026-05-01 00:00:00'
+GROUP BY crm_entity_type
+ORDER BY cnt DESC;
+```
+
+### Что считается «дозвоном» — варианты
+
+- `call_duration >= 60` — содержательный разговор (фильтрует приветствия и сбросы) ← **по умолчанию**
+- `call_duration > 0` — любой состоявшийся разговор
+- `call_status_code_id = '200'` — успех по коду АТС
+
+### SQL-паттерн: «с какой попытки дозвонились» (сделки, фильтр по воронке)
+
+Логика: группировка по номеру → нумерация звонков по времени → первый звонок с `call_duration >= 60` секунд = попытка дозвона. Если такого нет — недозвон.
+
+```sql
+WITH target_deals AS (
+    SELECT id
+    FROM bitrix24.crm_deal
+    WHERE category_id = '0'   -- ID нужной воронки
+),
+calls AS (
+    SELECT
+        tc.phone_number,
+        tc.call_start_time,
+        tc.call_duration,
+        ROW_NUMBER() OVER (
+            PARTITION BY tc.phone_number
+            ORDER BY tc.call_start_time
+        ) AS attempt_num
+    FROM bitrix24.telephony_call tc
+    JOIN target_deals d ON d.id = tc.crm_entity_id
+    WHERE tc.call_type = '1'
+      AND tc.crm_entity_type = 'DEAL'
+      AND tc.call_start_time >= TIMESTAMP '2026-05-01 00:00:00'
+      AND tc.phone_number IS NOT NULL
+      AND tc.phone_number <> ''
+),
+per_number AS (
+    SELECT
+        phone_number,
+        MIN(CASE WHEN call_duration >= 60 THEN attempt_num END) AS first_success_attempt
+    FROM calls
+    GROUP BY phone_number
+),
+bucketed AS (
+    SELECT
+        CASE
+            WHEN first_success_attempt = 1 THEN '1. С 1-й попытки'
+            WHEN first_success_attempt = 2 THEN '2. Со 2-й попытки'
+            WHEN first_success_attempt = 3 THEN '3. С 3-й попытки'
+            WHEN first_success_attempt = 4 THEN '4. С 4-й попытки'
+            WHEN first_success_attempt >= 5 THEN '5. С 5-й и более'
+            ELSE                                '6. Так и не дозвонились'
+        END AS bucket
+    FROM per_number
+)
+SELECT
+    bucket,
+    COUNT(*) AS numbers_cnt,
+    ROUND(COUNT(*) * 100.0 / SUM(COUNT(*)) OVER (), 1) AS pct
+FROM bucketed
+GROUP BY bucket
+ORDER BY bucket;
+```
+
+### SQL-паттерн: «с какой попытки дозвонились» (лиды)
+
+Для лидовых порталов — фильтр по `date_create` лида:
+
+```sql
+WITH target_leads AS (
+    SELECT id
+    FROM bitrix24.crm_lead
+    WHERE date_create >= TIMESTAMP '2026-05-01 00:00:00'
+),
+calls AS (
+    SELECT
+        tc.phone_number,
+        tc.call_start_time,
+        tc.call_duration,
+        ROW_NUMBER() OVER (
+            PARTITION BY tc.phone_number
+            ORDER BY tc.call_start_time
+        ) AS attempt_num
+    FROM bitrix24.telephony_call tc
+    JOIN target_leads l ON l.id = tc.crm_entity_id
+    WHERE tc.call_type = '1'
+      AND tc.crm_entity_type = 'LEAD'
+      AND tc.call_start_time >= TIMESTAMP '2026-05-01 00:00:00'
+      AND tc.phone_number IS NOT NULL
+      AND tc.phone_number <> ''
+),
+per_number AS (
+    SELECT
+        phone_number,
+        MIN(CASE WHEN call_duration >= 60 THEN attempt_num END) AS first_success_attempt
+    FROM calls
+    GROUP BY phone_number
+),
+bucketed AS (
+    SELECT
+        CASE
+            WHEN first_success_attempt = 1 THEN '1. С 1-й попытки'
+            WHEN first_success_attempt = 2 THEN '2. Со 2-й попытки'
+            WHEN first_success_attempt = 3 THEN '3. С 3-й попытки'
+            WHEN first_success_attempt = 4 THEN '4. С 4-й попытки'
+            WHEN first_success_attempt >= 5 THEN '5. С 5-й и более'
+            ELSE                                '6. Так и не дозвонились'
+        END AS bucket
+    FROM per_number
+)
+SELECT
+    bucket,
+    COUNT(*) AS numbers_cnt,
+    ROUND(COUNT(*) * 100.0 / SUM(COUNT(*)) OVER (), 1) AS pct
+FROM bucketed
+GROUP BY bucket
+ORDER BY bucket;
+```
+
+### SQL-паттерн: качество звонков по номерам АТС
+
+```sql
+WITH target_entities AS (
+    -- для сделок:
+    SELECT id FROM bitrix24.crm_deal WHERE category_id = '0'
+    -- для лидов:
+    -- SELECT id FROM bitrix24.crm_lead WHERE date_create >= TIMESTAMP '2026-05-01 00:00:00'
+)
+SELECT
+    tc.portal_number,
+    COUNT(*) AS total_outgoing,
+    SUM(CASE WHEN tc.call_duration >= 60 THEN 1 ELSE 0 END) AS over_60_sec,
+    ROUND(
+        SUM(CASE WHEN tc.call_duration >= 60 THEN 1 ELSE 0 END) * 100.0 / COUNT(*),
+        1
+    ) AS pct_over_60
+FROM bitrix24.telephony_call tc
+JOIN target_entities t ON t.id = tc.crm_entity_id
+WHERE tc.call_type = '1'
+  AND tc.crm_entity_type = 'DEAL'   -- или 'LEAD'
+  AND tc.call_start_time >= TIMESTAMP '2026-05-01 00:00:00'
+  AND tc.portal_number IS NOT NULL
+  AND tc.portal_number <> ''
+GROUP BY tc.portal_number
+ORDER BY total_outgoing DESC;
+```
+
+Замена `portal_number` на `portal_user` → срез по операторам, а не по номерам АТС.
+
+---
+
+## Лиды
+
+Основные поля `crm_lead` (отличия от сделок):
+
+| Поле | Тип | Назначение |
+|---|---|---|
+| `id` | BIGINT | ID лида (связка со звонками через `telephony_call.crm_entity_id` при `crm_entity_type = 'LEAD'`) |
+| `date_create` | TIMESTAMP | Дата создания — основной фильтр для «новых заявок» |
+| `date_modify` | TIMESTAMP | Дата изменения |
+| `date_closed` | TIMESTAMP | Дата закрытия |
+| `status_id` | VARCHAR | Код стадии (`NEW`, `IN_PROCESS`, `PROCESSED`, `JUNK`, `CONVERTED` или кастомные `UC_*`) |
+| `status_semantic_id` | VARCHAR | `P` / `S` / `F` — в процессе / успех / провал |
+| `assigned_by_id` | BIGINT | Ответственный (ID) |
+| `source_id` | VARCHAR | Источник лида |
+| `phone` | VARCHAR | Телефоны (множественное, через разделитель) |
+| `email` | VARCHAR | Email (множественное) |
+| `opportunity` | FLOAT | Ожидаемая сумма |
+| `utm_source`, `utm_medium`, `utm_campaign` | VARCHAR | UTM-метки |
+
+⚠️ **У лидов нет `category_id`.** Воронок в обычном смысле у лидов не бывает. В JOIN со `crm_stages` использовать только `status_id` + `entity_type_id = 1`, без `category_id`.
+
+История стадий лидов — в отдельной таблице `crm_lead_status_history` (не путать с `crm_deal_stage_history`).
+
+---
+
+## Смарт-процессы
+
+В Битрикс24 смарт-процессы (СП) — это пользовательские CRM-сущности (счета, проекты, заявки и т.п.) с собственными воронками и стадиями. В BI-конструкторе они хранятся в **отдельных таблицах для каждого типа**.
+
+### Структура
+
+- `crm_smart_proc` — справочник типов смарт-процессов портала
+- `crm_dynamic_items_<typeId>` — элементы смарт-процесса конкретного типа (одна таблица = один тип)
+- `crm_dynamic_items_prod_<typeId>` — товарные позиции элементов смарт-процесса
+- `crm_entity_stage_history` — универсальная история стадий по **всем** смарт-процессам портала
+
+### Зарезервированный ID
+
+- `31` = **Счета** (CRM Invoices) — зарезервирован Битриксом, одинаков для всех порталов.
+  - `crm_dynamic_items_31` — счета
+  - `crm_dynamic_items_prod_31` — товарные позиции счетов
+
+Все остальные `typeId` — портально-специфичные. Узнать список типов на конкретном портале:
+
+```sql
+SELECT * FROM bitrix24.crm_smart_proc;
+```
+
+или через имена таблиц:
+
+```sql
+SHOW TABLES IN bitrix24 LIKE 'crm_dynamic_items_%';
+```
+
+### История стадий смарт-процессов: `crm_entity_stage_history`
+
+Универсальная таблица истории по всем СП портала. Структура:
+
+| Поле | Тип | Назначение |
+|---|---|---|
+| `id` | BIGINT | Уникальный ключ записи |
+| `type_id` | BIGINT | Тип записи истории |
+| `owner_type_id` | BIGINT | **ID типа смарт-процесса** (для счетов = 31) |
+| `owner_id` | BIGINT | ID элемента смарт-процесса (FK на `crm_dynamic_items_<typeId>.id`) |
+| `date_create` | TIMESTAMP | Дата создания записи истории |
+| `start_date` | DATE | Дата начала пребывания в стадии |
+| `end_date` | DATE | Дата завершения пребывания в стадии |
+| `responsible_by_id` | BIGINT | ID ответственного |
+| `responsible_by_name` | VARCHAR | Имя ответственного |
+| `responsible_by` | VARCHAR | Ответственный (форматированное) |
+| `responsible_by_department` | VARCHAR | Отдел ответственного |
+| `category_id` | BIGINT | **ID воронки смарт-процесса** (нумерация портально-специфичная) |
+| `category_name` | VARCHAR | Название воронки |
+| `category` | VARCHAR | Воронка (форматированное) |
+| `stage_semantic_id` | VARCHAR | ID типа стадии (`P` / `S` / `F`) |
+| `stage_semantic` | VARCHAR | Тип стадии (форматированное) |
+| `stage_id` | VARCHAR | Код стадии |
+| `stage_name` | VARCHAR | Название стадии |
+| `stage` | VARCHAR | Стадия (форматированное) |
+
+⚠️ `category_id` в `crm_entity_stage_history` **всегда заполнено**, NULL не встречается. Значение зависит от конкретной воронки портала — разведать `SELECT DISTINCT category_id` для нужного `owner_type_id` перед фильтрацией.
+
+⚠️ В отличие от сделок и лидов, в смарт-процессах **уже встроены** имена ответственного, отдела, воронки и стадии — JOIN с `user`, `crm_stages` и т.п. часто не нужен. Это удобно для упрощения SQL.
+
+### Различия трёх таблиц истории
+
+| Таблица | Для какой сущности | FK на основную таблицу |
+|---|---|---|
+| `crm_deal_stage_history` | Сделки | `deal_id` |
+| `crm_lead_status_history` | Лиды | `lead_id` (уточнить разведкой) |
+| `crm_entity_stage_history` | Смарт-процессы (все типы) | `owner_id` + фильтр по `owner_type_id` |
+
+### Разведка перед отчётом по смарт-процессу
+
+```sql
+-- 1. Список типов смарт-процессов на портале
+SELECT * FROM bitrix24.crm_smart_proc;
+
+-- 2. Структура элементов конкретного типа (напр., счетов)
+SELECT * FROM bitrix24.crm_dynamic_items_31 LIMIT 1;
+
+-- 3. Какие воронки у этого типа
+SELECT DISTINCT category_id, category_name
+FROM bitrix24.crm_entity_stage_history
+WHERE owner_type_id = 31;
+
+-- 4. Стадии в нужной воронке
+SELECT DISTINCT stage_id, stage_name, stage_semantic_id
+FROM bitrix24.crm_entity_stage_history
+WHERE owner_type_id = 31 AND category_id = 1;
+```
+
+---
+
 ## Раскраска ячеек таблицы
 
 ### Что НЕ работает
@@ -477,6 +892,14 @@ CONCAT(
 | `label_colors` в дашборде не красит таблицу | Применяется только к категориальным чартам | Красить ячейки через SQL+HTML |
 | В импортированных сделках `date_create` врёт (= дата импорта) | Системное поле, при импорте перезаписывается | Использовать `begindate` — редактируемое поле, в импорте можно проставить реальную дату |
 | `crm_deal.stage_id` не джойнится по `crm_stages.id` | `stage_id` хранит код, не ID | JOIN через `crm_stages.status_id = crm_deal.stage_id` + `entity_type_id = 2` + кастинг `category_id` |
+| Фильтр `record_duration >= 60` отправляет 100% номеров в «недозвон» | `record_duration` фактически содержит длительность файла записи (часто NULL или 1–4 сек), а не разговора | Использовать `call_duration` (FLOAT, в секундах) |
+| `telephony_call.call_type = 1` не возвращает строк | Поле строковое, не числовое | `call_type = '1'` |
+| `redial_attempt` не показывает серию попыток менеджера | Поле — попытки автодозвона в рамках **одного** звонка | Серию собирать через `ROW_NUMBER() OVER (PARTITION BY phone_number ORDER BY call_start_time)` |
+| У одного «номера» в `phone_number` оказались разные клиенты | Префиксы в номерах различаются (`+79991234567` vs `79991234567`) | Нормализация в CTE: `REGEXP_REPLACE(phone_number, '[^0-9]', '')` и взять последние 10–11 цифр |
+| У лидов нет `category_id` | У лидов нет воронок в обычном смысле | В JOIN со `crm_stages` не использовать `category_id`, только `status_id` + `entity_type_id = 1` |
+| Отчёт по «всем звонкам» неинформативен — менеджеры названивают по старым контактам | Нужен срез по «новым заявкам», а не по всем звонкам в принципе | Фильтр через CTE с целевыми лидами/сделками + JOIN по `crm_entity_id` |
+| Не могу найти таблицу со смарт-процессом по имени | Каждый тип СП — отдельная таблица `crm_dynamic_items_<typeId>`, `typeId` портально-специфичный (кроме 31 = счета) | `SHOW TABLES IN bitrix24 LIKE 'crm_dynamic_items_%'` или `SELECT * FROM bitrix24.crm_smart_proc` |
+| Хочу историю стадий смарт-процесса, но в `crm_deal_stage_history` его нет | Сделки/лиды/СП хранятся в РАЗНЫХ таблицах истории | Для смарт-процессов — `crm_entity_stage_history` с фильтром `owner_type_id = <typeId>` |
 
 ---
 
@@ -494,3 +917,6 @@ CONCAT(
 - [ ] Даты отформатированы (без лишнего времени).
 - [ ] Длительность отображается в нужных единицах.
 - [ ] Для воронок проверен корректный учёт перескоков (через историю стадий).
+- [ ] Для отчётов по звонкам: проверено, что используется `call_duration`, а не `record_duration`.
+- [ ] Для отчётов по звонкам: `call_type` сравнивается со строкой (`'1'`, не `1`).
+- [ ] Для отчётов по смарт-процессам: использована правильная таблица истории (`crm_entity_stage_history` с фильтром `owner_type_id`, а не `crm_deal_stage_history`).
